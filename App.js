@@ -4,8 +4,8 @@
    DOS registros independientes:
      - habitos[]   : los hábitos que creas (Formulario A)
      - registros[] : cada día que apuntas de un hábito (Formulario B)
-   La tabla de seguimiento está en una SEGUNDA VENTANA y puede
-   cambiar el estado "cumplido" directamente sobre el array.
+   La tabla de seguimiento se muestra en un MODAL: una ventana
+   pequeña DENTRO de la misma página, con el fondo oscurecido.
    ============================================================ */
 
 /* ---------- COOKIES CON JSON (criterio g) ---------- */
@@ -57,7 +57,7 @@ function crearHabito() {
   document.getElementById("inDesc").value = "";
 
   guardarTodo();
-  rellenarSelectHabitos(); // el nuevo hábito debe aparecer en el formulario B
+  rellenarSelectHabitos();
   refrescar();
 }
 
@@ -116,87 +116,70 @@ function nombreHabito(id) {
 }
 
 /* ============================================================
-   CAMBIAR "cumplido" desde la tabla (criterio e + g)
-   La segunda ventana llama a ESTA función del padre con
-   window.opener. Así el cambio se guarda en el array real.
+   CAMBIAR "cumplido" y BORRAR (criterio e + g)
+   Al estar todo en la misma página, se accede al array directo.
    ============================================================ */
 function toggleCumplido(idRegistro) {
   const r = registros.find(x => x.id === idRegistro);
-  if (r) {
-    r.cumplido = !r.cumplido;
-    guardarTodo();
-    refrescar();
-  }
+  if (r) { r.cumplido = !r.cumplido; guardarTodo(); pintarTabla(); refrescar(); }
 }
 function borrarRegistro(idRegistro) {
   registros = registros.filter(r => r.id !== idRegistro);
-  guardarTodo();
-  refrescar();
+  guardarTodo(); pintarTabla(); refrescar();
 }
-// Exponemos las funciones para que la ventana hija pueda llamarlas
-window.toggleCumplido = toggleCumplido;
-window.borrarRegistro = borrarRegistro;
-window.getRegistros = () => registros;
-window.getNombreHabito = nombreHabito;
 
 /* ============================================================
-   SEGUNDA VENTANA · tabla de seguimiento (criterio f + d)
-   Se genera entera por código y se refresca sola.
+   MODAL · abrir/cerrar la ventana pequeña (criterio f)
+   No es otra ventana del navegador: es una capa de esta misma
+   página que mostramos u ocultamos quitando/poniendo una clase.
    ============================================================ */
-let ventanaTabla = null;
-
-function abrirTabla() {
-  if (registros.length === 0) { alert("Aún no hay registros que mostrar."); return; }
-  ventanaTabla = window.open("", "tabla", "width=820,height=560");
-  pintarTablaEnVentana();
+function abrirModal() {
+  pintarTabla();                                     // generamos la tabla
+  document.getElementById("modal").classList.remove("oculto"); // la mostramos
+}
+function cerrarModal() {
+  document.getElementById("modal").classList.add("oculto");
 }
 
-function pintarTablaEnVentana() {
-  if (!ventanaTabla || ventanaTabla.closed) return;
+/* ---------- Pintar la tabla dentro del modal (criterio d) ---------- */
+function pintarTabla() {
+  const cuerpo = document.getElementById("cuerpoTabla");
+  cuerpo.innerHTML = "";
 
-  let filas = "";
+  if (registros.length === 0) {
+    cuerpo.innerHTML = '<tr><td colspan="5" class="muted">Aún no hay registros.</td></tr>';
+    document.getElementById("modalResumen").textContent = "";
+    return;
+  }
+
   for (const r of registros) {
     const estado = r.cumplido
-      ? '<span style="color:#35d0a5;font-weight:700">✓ Cumplido</span>'
-      : '<span style="color:#ff6b6b;font-weight:700">✗ No cumplido</span>';
-    filas +=
-      '<tr>' +
-        '<td>' + nombreHabito(r.habitoId) + '</td>' +
-        '<td>' + r.fecha + '</td>' +
-        '<td>' + (r.observaciones || "-") + '</td>' +
-        '<td>' + estado + '</td>' +
-        '<td style="text-align:center">' +
-          '<button onclick="window.opener.toggleCumplido(' + r.id + '); window.opener.pintarTablaEnVentana();">Cambiar</button> ' +
-          '<button class="del" onclick="window.opener.borrarRegistro(' + r.id + '); window.opener.pintarTablaEnVentana();">X</button>' +
-        '</td>' +
-      '</tr>';
+      ? '<span class="estado-ok">✓ Cumplido</span>'
+      : '<span class="estado-no">✗ No cumplido</span>';
+    const fila = document.createElement("tr");
+    fila.innerHTML =
+      "<td>" + nombreHabito(r.habitoId) + "</td>" +
+      "<td>" + r.fecha + "</td>" +
+      "<td>" + (r.observaciones || "-") + "</td>" +
+      "<td>" + estado + "</td>" +
+      '<td><button type="button" class="btn-mini" data-toggle="' + r.id + '">Cambiar</button> ' +
+      '<button type="button" class="btn-mini del" data-del="' + r.id + '">✕</button></td>';
+    cuerpo.appendChild(fila);
   }
+
+  // conectar los botones de cada fila
+  cuerpo.querySelectorAll("[data-toggle]").forEach(b =>
+    b.addEventListener("click", () => toggleCumplido(Number(b.dataset.toggle))));
+  cuerpo.querySelectorAll("[data-del]").forEach(b =>
+    b.addEventListener("click", () => borrarRegistro(Number(b.dataset.del))));
+
   const cumplidos = registros.filter(r => r.cumplido).length;
   const fallados = registros.filter(r => !r.cumplido).length;
-
-  const html =
-    '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Tabla de seguimiento</title><style>' +
-    'body{font-family:system-ui,sans-serif;background:#0f1420;color:#e8ecf4;padding:24px}' +
-    'h1{color:#4f8cff}table{width:100%;border-collapse:collapse;margin-top:14px}' +
-    'th,td{border:1px solid #263149;padding:9px 11px;text-align:left}th{background:#4f8cff;color:#fff}' +
-    'tr:nth-child(even){background:#171e2e}button{background:#4f8cff;color:#fff;border:none;' +
-    'padding:5px 10px;border-radius:7px;cursor:pointer;font-weight:600}.del{background:#ff6b6b}' +
-    '.resumen{margin-top:14px;color:#93a0b8}</style></head><body>' +
-    '<h1>Tabla de seguimiento</h1>' +
-    '<p class="resumen">Cumplidos: ' + cumplidos + ' · No cumplidos: ' + fallados +
-    ' · Total: ' + registros.length + '</p>' +
-    '<table><thead><tr><th>Hábito</th><th>Fecha</th><th>Observaciones</th>' +
-    '<th>Estado</th><th>Acciones</th></tr></thead><tbody>' + filas + '</tbody></table>' +
-    '<p class="resumen">Pulsa "Cambiar" para marcar cumplido / no cumplido. Se guarda al instante.</p>' +
-    '</body></html>';
-
-  ventanaTabla.document.open();
-  ventanaTabla.document.write(html);
-  ventanaTabla.document.close();
+  document.getElementById("modalResumen").textContent =
+    "Cumplidos: " + cumplidos + " · No cumplidos: " + fallados + " · Total: " + registros.length;
 }
-window.pintarTablaEnVentana = pintarTablaEnVentana;
 
-/* ---------- Estadísticas en la ventana principal (criterio d) ---------- */
+/* ---------- Estadísticas en la página principal (criterio d) ---------- */
 function refrescar() {
   const totalH = habitos.length;
   const cumplidos = registros.filter(r => r.cumplido).length;
@@ -205,8 +188,6 @@ function refrescar() {
     '<div class="stat"><b>' + totalH + '</b>hábitos</div>' +
     '<div class="stat"><b>' + cumplidos + '</b>días cumplidos</div>' +
     '<div class="stat"><b>' + fallados + '</b>días fallados</div>';
-  // si la tabla está abierta, la actualizamos también
-  if (ventanaTabla && !ventanaTabla.closed) pintarTablaEnVentana();
 }
 
 /* ---------- ARRANQUE (criterio h) ---------- */
@@ -227,13 +208,28 @@ function iniciar() {
 
   document.getElementById("btnCrear").addEventListener("click", crearHabito);
   document.getElementById("btnRegistrar").addEventListener("click", registrarDia);
-  document.getElementById("btnTabla").addEventListener("click", abrirTabla);
+
+  // Menú: "Ver seguimiento" abre el modal
+  document.getElementById("navTabla").addEventListener("click", function (e) {
+    e.preventDefault();
+    abrirModal();
+  });
+  document.getElementById("navInicio").addEventListener("click", function (e) {
+    e.preventDefault();
+    cerrarModal();
+  });
+
+  // Cerrar el modal con la X o pulsando fuera de la ventanita
+  document.getElementById("btnCerrarModal").addEventListener("click", cerrarModal);
+  document.getElementById("modal").addEventListener("click", function (e) {
+    if (e.target === this) cerrarModal(); // clic en el fondo oscuro
+  });
+
   document.getElementById("btnReiniciar").addEventListener("click", function () {
     if (confirm("¿Borrar todos los hábitos y registros?")) {
       borrarCookie("habitos"); borrarCookie("registros"); borrarCookie("usuario");
       habitos = []; registros = [];
-      rellenarSelectHabitos(); refrescar();
-      if (ventanaTabla && !ventanaTabla.closed) ventanaTabla.close();
+      rellenarSelectHabitos(); refrescar(); cerrarModal();
       alert("Todo borrado. Recarga la página.");
     }
   });

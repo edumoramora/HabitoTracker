@@ -12,6 +12,12 @@
     <p id="saludo" class="muted"></p>
   </header>
 
+  <!-- Menú de navegación -->
+  <nav id="menu">
+    <a href="#" id="navInicio" class="nav__link nav__link--activo">Inicio</a>
+    <a href="#" id="navTabla" class="nav__link">Ver seguimiento</a>
+  </nav>
+
   <!-- FORMULARIO A: crear hábito -->
   <section class="card">
     <h2>1 · Crear un hábito</h2>
@@ -25,7 +31,7 @@
         <option value="Trabajo">Trabajo</option>
         <option value="Otros">Otros</option>
       </select>
-      <button id="btnCrear">Crear hábito</button>
+      <button type="button" id="btnCrear">Crear hábito</button>
     </div>
     <p id="avisoA" class="aviso"></p>
   </section>
@@ -38,7 +44,7 @@
       <input type="date" id="inFecha">
       <input type="text" id="inObs" placeholder="Observaciones">
       <label class="check"><input type="checkbox" id="inCumplido"> Cumplido</label>
-      <button id="btnRegistrar">Guardar registro</button>
+      <button type="button" id="btnRegistrar">Guardar registro</button>
     </div>
     <p id="avisoB" class="aviso"></p>
   </section>
@@ -47,10 +53,32 @@
   <section class="stats" id="statsGlobal"></section>
 
   <section class="card">
-    <h2>Seguimiento</h2>
-    <button id="btnTabla">Abrir tabla de seguimiento (2ª ventana)</button>
-    <button id="btnReiniciar" class="peligro">Borrar todo</button>
+    <h2>Datos</h2>
+    <button type="button" id="btnReiniciar" class="peligro">Borrar todo</button>
   </section>
+
+  <!-- ============================================================
+       MODAL · ventana pequeña DENTRO de la misma página.
+       Está oculto por defecto (class "oculto"). Al abrirlo, se ve
+       el fondo oscurecido y la tabla flotando encima.
+       ============================================================ -->
+  <div id="modal" class="modal oculto">
+    <div class="modal__caja">
+      <div class="modal__cab">
+        <h2>Seguimiento</h2>
+        <button type="button" id="btnCerrarModal" class="modal__cerrar">✕</button>
+      </div>
+      <p id="modalResumen" class="muted"></p>
+      <div class="modal__cuerpo">
+        <table id="tablaSeguimiento">
+          <thead>
+            <tr><th>Hábito</th><th>Fecha</th><th>Observaciones</th><th>Estado</th><th></th></tr>
+          </thead>
+          <tbody id="cuerpoTabla"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

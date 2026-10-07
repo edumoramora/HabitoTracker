@@ -3,6 +3,10 @@
 body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx);max-width:820px;margin:28px auto;padding:0 18px;line-height:1.55;}
 h1{color:var(--az);}h2{font-size:1.05rem;margin-bottom:12px;}
 .muted{color:var(--sub);font-size:.92rem;}
+#menu{display:flex;gap:8px;margin-top:14px;border-bottom:2px solid var(--az);}
+.nav__link{color:var(--sub);text-decoration:none;padding:10px 18px;border-radius:10px 10px 0 0;font-weight:600;}
+.nav__link:hover{color:var(--tx);background:#0e1424;}
+.nav__link--activo{color:#fff;background:var(--az);}
 .card{background:var(--card);border:1px solid var(--bord);border-radius:14px;padding:18px;margin-top:16px;}
 .form-grid{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 input[type=text],input[type=date],select{flex:1;min-width:150px;padding:10px 12px;background:#0e1424;border:1px solid var(--bord);border-radius:10px;color:var(--tx);}
@@ -15,3 +19,44 @@ button:hover{filter:brightness(1.1);}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;}
 .stat{background:var(--card);border:1px solid var(--bord);border-radius:14px;padding:16px;text-align:center;}
 .stat b{display:block;font-size:1.6rem;color:var(--vd);}
+
+/* ============================================================
+   MODAL · ventana flotante dentro de la misma página
+   ============================================================ */
+/* Capa que cubre toda la pantalla y oscurece el fondo */
+.modal{
+  position:fixed;              /* se queda fijo aunque hagas scroll */
+  inset:0;                     /* arriba, abajo, izq y der a 0: cubre todo */
+  background:rgba(0,0,0,.6);   /* fondo semitransparente: se ve lo de detrás */
+  display:flex;
+  align-items:center;          /* centra la ventanita vertical... */
+  justify-content:center;      /* ...y horizontalmente */
+  z-index:100;                 /* por encima de todo lo demás */
+}
+/* Clase que oculta el modal */
+.modal.oculto{display:none;}
+/* La ventanita en sí: pequeña, no ocupa toda la pantalla */
+.modal__caja{
+  background:var(--card);
+  border:1px solid var(--bord);
+  border-radius:16px;
+  padding:22px;
+  width:90%;
+  max-width:720px;             /* no crece más de esto */
+  max-height:80vh;             /* como mucho 75% del alto */
+  overflow:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.modal__cab{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.modal__cab h2{margin:0;color:var(--az);}
+.modal__cerrar{background:none;color:var(--sub);font-size:1.2rem;padding:4px 10px;}
+.modal__cerrar:hover{color:var(--rj);filter:none;}
+.modal__cuerpo{margin-top:12px;}
+table{width:100%;border-collapse:collapse;}
+th,td{border:1px solid var(--bord);padding:8px 10px;text-align:left;font-size:.9rem;}
+th{background:var(--az);color:#fff;}
+tr:nth-child(even) td{background:#0e1424;}
+.estado-ok{color:var(--vd);font-weight:700;}
+.estado-no{color:var(--rj);font-weight:700;}
+.btn-mini{padding:4px 10px;font-size:.8rem;}
+.btn-mini.del{background:var(--rj);}
